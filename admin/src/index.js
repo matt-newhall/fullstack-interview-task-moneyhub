@@ -3,6 +3,8 @@ const bodyParser = require("body-parser")
 const config = require("config")
 const request = require("request")
 
+const {fetchAndParse, generateHoldingsCSV, getCompanyNames} = require("./utils/helpers")
+
 const app = express()
 
 app.use(bodyParser.json({limit: "10mb"}))
@@ -19,31 +21,13 @@ app.get("/investments/:id", (req, res) => {
   })
 })
 
-const generateHoldingsCSV = (userHoldings, companyNames) => {
-  let csv = ""
-  for (const user of userHoldings) {
-    for (const holding of user.holdings) {
-      const value = user.investmentTotal * holding.investmentPercentage
-      const company = companyNames[holding.id]
-      csv += `${user.userId},${user.firstName},${user.lastName},${user.date},${company},${value}\n`
-    }
-  }
-  return csv
-}
-
 app.post("/investments/export", async (_, res) => {
   // Fetch data from other services
-  const companiesRes = await fetch(`${config.financialCompaniesUrl}/companies`)
-  const companies = await companiesRes.json()
-
-  const userHoldingsRes = await fetch(`${config.investmentsServiceUrl}/investments`)
-  const userHoldings = await userHoldingsRes.json()
+  const companies = await fetchAndParse(`${config.financialCompaniesUrl}/companies`)
+  const userHoldings = await fetchAndParse(`${config.investmentsServiceUrl}/investments`)
 
   // Generate dictionary of company indices and company names
-  const companyNames = companies.reduce((acc, company) => {
-    acc[company.id] = company.name
-    return acc
-  }, {})
+  const companyNames = getCompanyNames(companies)
 
   // Generate CSV data
   const csv = generateHoldingsCSV(userHoldings, companyNames)
