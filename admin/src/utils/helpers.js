@@ -1,3 +1,7 @@
+const R = require("ramda")
+
+const {map, chain} = R
+
 const fetchAndParse = async (url) => {
   const response = await fetch(url)
   if (!response.ok) {
@@ -6,15 +10,18 @@ const fetchAndParse = async (url) => {
   return await response.json()
 }
 
+const generateCSVLine = companyNames => user => holding => {
+  const value = user.investmentTotal * holding.investmentPercentage
+  const company = companyNames[holding.id]
+  return `${user.userId},${user.firstName},${user.lastName},${user.date},${company},${value}`
+}
+
 const generateHoldingsCSV = (userHoldings, companyNames) => {
-  const csv = userHoldings.flatMap(user =>
-    user.holdings.map(holding => {
-      const value = user.investmentTotal * holding.investmentPercentage
-      const company = companyNames[holding.id]
-      return `${user.userId},${user.firstName},${user.lastName},${user.date},${company},${value}`
-    }),
-  )
-  return csv.join("\n")
+  const csvLines = chain(user =>
+    map(generateCSVLine(companyNames)(user), user.holdings),
+  )(userHoldings)
+
+  return R.join("\n", csvLines)
 }
 
 const getCompanyNames = (companies) => {
