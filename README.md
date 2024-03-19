@@ -119,3 +119,4 @@ npm run test
 - Transition to using ES6 import/exports, as opposed to CommonJS.
 - Investigate relative performance of functional paradigms used (e.g. was there a faster alternative than `flatMap` and `map` in `utils/holdings/generateHoldingsCSV`).
 - Add relevant error handling to the new route, such that the service does not stop if an error occurs.
+- Remove error message that appears when Jest tests run, appears to be trying to start the service, and tries to log the 'Server running' message - I've added a `--forceExit` flag for now to ignore this!
