@@ -21,7 +21,7 @@ app.get("/investments/:id", (req, res) => {
   })
 })
 
-app.post("/investments/export", async (_, res) => {
+const handleCSVExport = async (_, res) => {
   // Fetch data from other services
   const companies = await fetchAndParse(`${config.financialCompaniesUrl}/companies`)
   const userHoldings = await fetchAndParse(`${config.investmentsServiceUrl}/investments`)
@@ -53,7 +53,9 @@ app.post("/investments/export", async (_, res) => {
     res.setHeader("Content-Type", "text/csv")
     res.send(csv)
   })
-})
+}
+
+app.post("/investments/export", handleCSVExport)
 
 app.listen(config.port, (err) => {
   if (err) {
@@ -62,3 +64,5 @@ app.listen(config.port, (err) => {
   }
   console.log(`Server running on port ${config.port}`)
 })
+
+module.exports = {handleCSVExport}
