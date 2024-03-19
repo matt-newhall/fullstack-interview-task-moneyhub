@@ -79,3 +79,43 @@ Financial Companies - localhost:8082
 
 Admin - localhost:8083
 - `/investments/:id` get an investment record by id
+- `/investments/export` sends values of all user investment holdings to the Investments service
+
+## Testing
+
+To run the unit tests that were added to test the new `/investments/export` route in the Admin service, run
+
+```bash
+cd admin
+npm run test
+```
+
+## Miscellaneous Questions
+
+### How might you make this service more secure?
+
+(My answer assumes that by 'service' and not 'services', you're referring specifically to the `admin` service!)
+
+1. The `id` input in the `/investments/:id` route is unsanitised, so we would need to validate this data to prevent potential data injection attacks, etc.
+2. As this is a service used by non-technical staff, only add permissions to relevant users to make it harder for unwanted persons to access secure investments data.
+3. Put user sensitive data (i.e. first name, last name) in a separate table with unique ids, and then refer to these ids in the investments table. This secures the user's data more, preventing unwanted persons from accessing specific user information whilst still being able to view user holdings to some degree. This also fits the investments table into third normal form, as we don't need to state the user's names for each record they appear in.
+4. Add logging services to track IPs/users that sent potentially harmful traffic to the service.
+
+### How would you make this solution scale to millions of records?
+
+1. Implement Ramda.js (or other functional tools) to allow for faster processing.
+2. Similar to point 3 of question 1, optimise the JSON objects that currently store data to eliminate data redundancy and duplication, easing storage requirements.
+3. Implement caching in a better manner than what I have used so far (i.e. storing id-company name pairs in `companyNames`) to reduce response times and calls to other services.
+
+### What else would you have liked to improve given more time?
+
+- Refactor codebase to utilise TypeScript, to minimise type errors that may occur as features are continually added, and to improve DevEx.
+- Add additional unit tests to test:
+  - Admin service startup
+  - Sad path, i.e. a reuqest that results in a 500 response
+  - Edge cases (such as no users)
+- Improve file structure of repository by extracting route handler functions into a separate folder, for legibility in the `index.js` files.
+- Create separate configuration files for development and test mode - currently just have the one. Not an issue currently as config is the same for both.
+- Transition to using ES6 import/exports, as opposed to CommonJS.
+- Investigate relative performance of functional paradigms used (e.g. was there a faster alternative than `flatMap` and `map` in `utils/holdings/generateHoldingsCSV`).
+- Add relevant error handling to the new route, such that the service does not stop if an error occurs.
